@@ -53,6 +53,36 @@ Use online only
 
 It bulk-parses the merchant, online-only flag, cashback percent, card, activated status, and relative expiration date. Always review the parsed preview before saving.
 
+## Agent import workflow
+
+This repo includes a project-local Copilot CLI extension:
+
+```text
+.github/extensions/cashback-deals/extension.mjs
+```
+
+When Copilot CLI is running from this repo, the agent can call the `cashback_import_deals` tool. Paste a full card-offer page and ask:
+
+```text
+Use cashback_import_deals with writeToRepo=true and baseDate=2026-07-05 to update data/deals.json from this pasted page:
+
+<paste offer page text here>
+```
+
+The tool extracts merchant, card, cashback percent, online-only flag, activation status, and expiration date. It updates only `data/deals.json`; review `git diff` before committing.
+
+You can also run the same importer directly:
+
+```sh
+pbpaste | node scripts/import-offers.mjs --base-date 2026-07-05 --write
+```
+
+Preview without writing:
+
+```sh
+node scripts/import-offers.mjs --input /tmp/chase-offers.txt --base-date 2026-07-05
+```
+
 ## Security model
 
 Do not store full card numbers, CVV, bank passwords, session cookies, or bank login data. The intended data is card nicknames, public reward rules, merchant aliases, and offer terms.
