@@ -1,7 +1,6 @@
-const CACHE_NAME = 'card-rewards-pwa-v2';
+const CACHE_NAME = 'card-rewards-pwa-v3';
 
 const STATIC_ASSETS = [
-  './',
   './index.html',
   './styles.css',
   './app.js',

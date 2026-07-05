@@ -20,6 +20,12 @@ python3 -m http.server 8080
 
 Then visit `http://localhost:8080`.
 
+Published site:
+
+```text
+https://guanzhousong.github.io/card-rewards-pwa/index.html
+```
+
 ## GitHub Pages
 
 This repo includes `.github/workflows/pages.yml`, which deploys the static site from `main` using GitHub Pages. In the repository settings, set **Pages** to use **GitHub Actions** if it is not already enabled.

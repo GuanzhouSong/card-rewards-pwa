@@ -2,7 +2,7 @@
   "name": "Card Rewards PWA",
   "short_name": "Cards",
   "description": "Choose the best credit card for a merchant using local JSON reward rules and deals.",
-  "start_url": "./",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#eef2f7",
@@ -16,4 +16,3 @@
     }
   ]
 }
-
