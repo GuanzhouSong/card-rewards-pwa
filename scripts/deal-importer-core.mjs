@@ -78,6 +78,7 @@ export function parseDealsFromText({
 
   const rawDeals = [
     ...parsePercentCashbackOffers({ lines, cards, merchants, selectedCard, baseDate, activated, source }),
+    ...parseFlatCashbackOffers({ lines, cards, merchants, selectedCard, baseDate, activated, source }),
     ...parseSpendGetOffers({ text, cards, merchants, selectedCard, baseDate, activated, source }),
   ];
   const deals = dedupeDeals(rawDeals.map((deal) => normalizeDealForStorage(deal, merchants)));
@@ -213,6 +214,39 @@ function parseSpendGetOffers({ text, merchants, selectedCard, baseDate, activate
   return offers;
 }
 
+function parseFlatCashbackOffers({ lines, merchants, selectedCard, baseDate, activated, source }) {
+  const offers = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const cashbackAmount = extractFlatCashbackAmount(lines[index]);
+    if (cashbackAmount === null) continue;
+
+    const merchantLine = findMerchantLine(lines, index);
+    if (!merchantLine) continue;
+
+    const merchant = findMerchantByName(merchantLine, merchants);
+    const merchantName = merchant?.name || merchantLine;
+
+    offers.push({
+      cardId: selectedCard?.id || '',
+      merchantId: merchant?.id || '',
+      merchantName,
+      merchantAliases: merchant?.aliases || [],
+      title: `$${formatNumber(cashbackAmount)} cash back at ${merchantName}`,
+      type: 'statement_credit',
+      minSpend: null,
+      discountAmount: cashbackAmount,
+      maxBenefit: cashbackAmount,
+      expires: findExpiryNear(lines, index, baseDate),
+      activated,
+      onlineOnly: nearbyLines(lines, index, 2).some(isOnlineOnlyLine),
+      source,
+    });
+  }
+
+  return offers;
+}
+
 function normalizeDealForStorage(deal, merchants = []) {
   const merchant = deal.merchantId
     ? merchants.find((item) => item.id === deal.merchantId)
@@ -303,6 +337,11 @@ function cleanLines(text) {
 
 function extractCashbackPercent(line) {
   const match = String(line).match(/(\d+(?:\.\d+)?)\s*%\s*(?:cash\s*back|cashback|back)/i);
+  return match ? cleanNumber(match[1]) : null;
+}
+
+function extractFlatCashbackAmount(line) {
+  const match = String(line).match(/^\$?\s*([\d,.]+)\s*cash\s*back$/i);
   return match ? cleanNumber(match[1]) : null;
 }
 
@@ -400,6 +439,7 @@ function isOnlineOnlyLine(line) {
 
 function isNonMerchantLine(line) {
   return /^(added|activated|redeemed|expiring soon|expired|home|offers wallet|chase shopping|more|choose account|total amount saved|use online only)$/i.test(line)
+    || /^use only at\b/i.test(line)
     || /^skip\b/i.test(line)
     || /^sign out$/i.test(line)
     || /^accounts$/i.test(line)
@@ -414,6 +454,7 @@ function isNonMerchantLine(line) {
     || /^\$[\d,.]+$/.test(line)
     || /^\d+d(?:ays?)?\s*left$/i.test(line)
     || extractCashbackPercent(line) !== null
+    || extractFlatCashbackAmount(line) !== null
     || extractExpiryDate(line) !== '';
 }
 
@@ -465,6 +506,9 @@ function formatOffer(deal) {
     return `${formatNumber(deal.cashbackPercent)}% cash back${deal.maxBenefit ? `, max $${formatNumber(deal.maxBenefit)}` : ''}`;
   }
   if (deal.type === 'statement_credit') {
+    if (deal.minSpend === null || deal.minSpend === undefined || Number(deal.minSpend) === 0) {
+      return `$${formatNumber(deal.discountAmount)} cash back`;
+    }
     return `Spend $${formatNumber(deal.minSpend)}, get $${formatNumber(deal.discountAmount)} back`;
   }
   if (deal.type === 'bonus_multiplier') {

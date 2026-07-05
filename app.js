@@ -542,48 +542,74 @@ function parseChaseOffersText(text, options = {}) {
   const offers = [];
 
   for (let index = 0; index < lines.length; index += 1) {
-    const cashbackMatch = lines[index].match(/^(\d+(?:\.\d+)?)\s*%\s*cash\s*back$/i);
-    if (!cashbackMatch) continue;
+    const cashback = parseCashbackLine(lines[index]);
+    if (!cashback) continue;
 
-    let merchantIndex = index - 1;
-    let onlineOnly = false;
-    if (merchantIndex >= 0 && isOnlineOnlyLine(lines[merchantIndex])) {
-      onlineOnly = true;
-      merchantIndex -= 1;
-    }
-
-    const merchantName = lines[merchantIndex] || '';
+    const merchantName = findRewardMerchantLine(lines, index);
     if (!merchantName || isNonMerchantLine(merchantName)) continue;
 
     const merchant = findMerchantByName(merchantName);
     const daysLeft = (lines[index + 1] || '').match(/^(\d+)\s*d(?:ays?)?\s*left$/i);
-    const cashbackPercent = cleanNumber(cashbackMatch[1]);
     const expires = daysLeft ? daysLeftToIso(daysLeft[1], options.baseDate) : '';
 
-    offers.push({
+    const common = {
       cardId: card?.id || '',
       merchantId: merchant?.id || '',
       merchantName: merchant?.name || merchantName,
       merchantAliases: merchant?.aliases || [],
-      title: `${cashbackPercent}% cash back at ${merchant?.name || merchantName}`,
-      type: 'cashback_percent',
       minSpend: '',
-      discountAmount: '',
-      cashbackPercent,
       maxBenefit: '',
       extraMultiplier: '',
       expires,
       activated,
-      onlineOnly,
+      onlineOnly: lines.slice(Math.max(0, index - 2), index).some(isOnlineOnlyLine),
       source: 'chase-offers-paste',
-    });
+    };
+
+    if (cashback.kind === 'percent') {
+      offers.push({
+        ...common,
+        title: `${cashback.value}% cash back at ${merchant?.name || merchantName}`,
+        type: 'cashback_percent',
+        discountAmount: '',
+        cashbackPercent: cashback.value,
+      });
+    } else {
+      offers.push({
+        ...common,
+        title: `$${cashback.value} cash back at ${merchant?.name || merchantName}`,
+        type: 'statement_credit',
+        discountAmount: cashback.value,
+        cashbackPercent: '',
+        maxBenefit: cashback.value,
+      });
+    }
   }
 
   return offers;
 }
 
 function looksLikeCashbackList(text) {
-  return /\d+(?:\.\d+)?\s*%\s*cash\s*back/i.test(text) && /\d+\s*d(?:ays?)?\s*left/i.test(text);
+  return /(?:\d+(?:\.\d+)?\s*%|\$\s*[\d,.]+)\s*cash\s*back/i.test(text) && /\d+\s*d(?:ays?)?\s*left/i.test(text);
+}
+
+function parseCashbackLine(line) {
+  const percent = String(line).match(/^(\d+(?:\.\d+)?)\s*%\s*cash\s*back$/i);
+  if (percent) return { kind: 'percent', value: cleanNumber(percent[1]) };
+
+  const flat = String(line).match(/^\$?\s*([\d,.]+)\s*cash\s*back$/i);
+  if (flat) return { kind: 'flat', value: cleanNumber(flat[1]) };
+
+  return null;
+}
+
+function findRewardMerchantLine(lines, rewardLineIndex) {
+  for (let index = rewardLineIndex - 1; index >= Math.max(0, rewardLineIndex - 5); index -= 1) {
+    const line = lines[index];
+    if (!isNonMerchantLine(line)) return line;
+  }
+
+  return '';
 }
 
 function isOnlineOnlyLine(line) {
@@ -592,10 +618,12 @@ function isOnlineOnlyLine(line) {
 
 function isNonMerchantLine(line) {
   return /^(added|redeemed|expiring soon|expired|home|offers wallet|chase shopping|more|choose account|total amount saved|use online only)$/i.test(line)
+    || /^use only at\b/i.test(line)
     || /^skip\b/i.test(line)
     || /^sign out$/i.test(line)
     || /^\$[\d,.]+$/.test(line)
-    || /^\d+d(?:ays?)?\s*left$/i.test(line);
+    || /^\d+d(?:ays?)?\s*left$/i.test(line)
+    || parseCashbackLine(line) !== null;
 }
 
 function renderBulkOfferPreview() {
@@ -610,8 +638,7 @@ function renderBulkOfferPreview() {
       <ul>
         ${state.parsedBulkDeals.map((deal, index) => `
           <li>
-            ${escapeHtml(deal.merchantName)}:
-            ${escapeHtml(deal.cashbackPercent)}% cash back
+            ${escapeHtml(deal.title)}
             ${deal.onlineOnly ? ' · online only' : ''}
             ${deal.expires ? ` · expires ${escapeHtml(deal.expires)}` : ''}
             · ${escapeHtml(cardName(deal.cardId))}
@@ -644,6 +671,7 @@ function parseOfferText(text, options = {}) {
   const card = findCardInText(text);
   const spendGet = compact.match(/spend\s*\$?\s*([\d,.]+).{0,100}?(?:get|receive|earn)\s*\$?\s*([\d,.]+)/i);
   const percent = compact.match(/(\d+(?:\.\d+)?)\s*%\s*(?:cash\s*back|cashback|back)/i);
+  const flatCashback = compact.match(/(?:^|\s)\$?\s*([\d,.]+)\s*cash\s*back(?:\s|$)/i);
   const upTo = compact.match(/up\s*to\s*\$?\s*([\d,.]+)/i);
   const expiry = extractExpiryDate(compact, options.baseDate);
   const firstLine = text.split('\n').map((line) => line.trim()).find(Boolean);
@@ -673,6 +701,11 @@ function parseOfferText(text, options = {}) {
     parsed.cashbackPercent = cleanNumber(percent[1]);
     parsed.maxBenefit = upTo ? cleanNumber(upTo[1]) : '';
     parsed.title = `${parsed.cashbackPercent}% back${parsed.maxBenefit ? `, up to ${formatCurrency(parsed.maxBenefit)}` : ''}`;
+  } else if (flatCashback) {
+    parsed.type = 'statement_credit';
+    parsed.discountAmount = cleanNumber(flatCashback[1]);
+    parsed.maxBenefit = cleanNumber(flatCashback[1]);
+    parsed.title = `${formatCurrency(parsed.discountAmount)} cash back`;
   }
 
   return parsed;

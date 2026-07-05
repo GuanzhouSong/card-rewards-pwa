@@ -31,6 +31,16 @@ Example: `4x * 1.5 cents = 6%`.
 }
 ```
 
+Flat cashback offers without visible minimum spend are stored as statement credits:
+
+```json
+{
+  "type": "statement_credit",
+  "discountAmount": 30,
+  "maxBenefit": 30
+}
+```
+
 ```json
 {
   "type": "bonus_multiplier",

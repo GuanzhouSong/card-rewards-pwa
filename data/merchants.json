@@ -148,5 +148,59 @@
     "name": "Starlink",
     "category": "online",
     "aliases": ["starlink fast affordable home internet", "starlink internet", "spacex starlink"]
+  },
+  {
+    "id": "sri-thai-kitchen-sushi-duluth",
+    "name": "Sri Thai Kitchen & Sushi - Duluth",
+    "category": "restaurant",
+    "aliases": ["sri thai kitchen and sushi duluth", "sri thai kitchen", "sri thai sushi", "sri thai"]
+  },
+  {
+    "id": "tory-burch",
+    "name": "Tory Burch",
+    "category": "retail",
+    "aliases": ["toryburch", "toryburch.com"]
+  },
+  {
+    "id": "meta-store",
+    "name": "Meta Store",
+    "category": "electronics",
+    "aliases": ["meta quest", "quest store", "meta.com"]
+  },
+  {
+    "id": "fragrance-com",
+    "name": "Fragrance.com",
+    "category": "online",
+    "aliases": ["fragrance", "fragrancenet", "fragrance.com"]
+  },
+  {
+    "id": "airalo",
+    "name": "Airalo",
+    "category": "travel",
+    "aliases": ["airalo esim", "airalo.com"]
+  },
+  {
+    "id": "fanatics",
+    "name": "Fanatics",
+    "category": "retail",
+    "aliases": ["fanatics.com"]
+  },
+  {
+    "id": "musely",
+    "name": "Musely",
+    "category": "online",
+    "aliases": ["musely.com"]
+  },
+  {
+    "id": "youtube-tv",
+    "name": "YouTube TV",
+    "category": "online",
+    "aliases": ["youtube tv", "youtubetv"]
+  },
+  {
+    "id": "adidas",
+    "name": "adidas",
+    "category": "retail",
+    "aliases": ["adidas.com", "adidas store"]
   }
 ]
