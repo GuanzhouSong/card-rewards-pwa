@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Card Rewards">
+  <rect width="512" height="512" rx="112" fill="#101828"/>
+  <rect x="86" y="146" width="340" height="220" rx="34" fill="#ffffff"/>
+  <rect x="116" y="198" width="280" height="42" rx="12" fill="#175cd3"/>
+  <circle cx="154" cy="302" r="26" fill="#12b76a"/>
+  <path d="M216 292h142a14 14 0 0 1 0 28H216a14 14 0 0 1 0-28Z" fill="#101828"/>
+</svg>
+

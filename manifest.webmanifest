@@ -1,0 +1,19 @@
+{
+  "name": "Card Rewards PWA",
+  "short_name": "Cards",
+  "description": "Choose the best credit card for a merchant using local JSON reward rules and deals.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eef2f7",
+  "theme_color": "#101828",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+

@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#101828">
+    <title>Card Rewards PWA</title>
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Private-by-design static PWA</p>
+        <h1>Which card should I use?</h1>
+        <p class="hero-copy">
+          Search a merchant, add an optional amount, and compare card rewards plus active deals.
+        </p>
+      </div>
+      <div class="status-pill" id="data-status">Loading data...</div>
+    </header>
+
+    <main class="layout">
+      <section class="panel primary-panel" aria-labelledby="recommendation-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Recommendation</p>
+            <h2 id="recommendation-title">Find the best card</h2>
+          </div>
+        </div>
+
+        <form class="search-form" id="search-form" autocomplete="off">
+          <label>
+            <span>Merchant or store</span>
+            <input id="merchant-input" name="merchant" type="search" placeholder="Try mcdo, Whole Foods, Costco gas">
+          </label>
+
+          <label>
+            <span>Amount (optional)</span>
+            <input id="amount-input" name="amount" inputmode="decimal" placeholder="$25.00">
+          </label>
+
+          <label>
+            <span>Fallback category</span>
+            <select id="category-select" name="category">
+              <option value="">Use merchant match</option>
+            </select>
+          </label>
+        </form>
+
+        <div class="suggestions" id="merchant-suggestions" aria-live="polite"></div>
+        <div id="recommendation-summary" class="summary-card"></div>
+        <div id="recommendation-results" class="results" aria-live="polite"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="import-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Deal import</p>
+            <h2 id="import-title">Add cashback deal</h2>
+          </div>
+        </div>
+
+        <div class="stack">
+          <label>
+            <span>Screenshot (optional)</span>
+            <input id="screenshot-input" type="file" accept="image/*">
+          </label>
+          <p class="hint" id="ocr-status">
+            Built-in OCR is used only if your browser supports it. Otherwise paste the offer text below.
+          </p>
+
+          <label>
+            <span>Offer text</span>
+            <textarea id="offer-text" rows="6" placeholder="Spend $50 or more, get $10 back at Shake Shack. Expires 08/31/2026."></textarea>
+          </label>
+
+          <div class="button-row">
+            <button class="button secondary" id="parse-offer" type="button">Parse offer text</button>
+            <button class="button ghost" id="clear-offer" type="button">Clear</button>
+          </div>
+        </div>
+
+        <form class="deal-form" id="deal-form">
+          <div class="form-grid">
+            <label>
+              <span>Card</span>
+              <select id="deal-card" required></select>
+            </label>
+
+            <label>
+              <span>Merchant</span>
+              <input id="deal-merchant" list="merchant-options" required placeholder="Shake Shack">
+              <datalist id="merchant-options"></datalist>
+            </label>
+
+            <label class="wide">
+              <span>Deal title</span>
+              <input id="deal-title" required placeholder="Spend $50, get $10 back">
+            </label>
+
+            <label>
+              <span>Type</span>
+              <select id="deal-type">
+                <option value="statement_credit">Statement credit</option>
+                <option value="cashback_percent">Cashback percent</option>
+                <option value="bonus_multiplier">Bonus multiplier</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Minimum spend</span>
+              <input id="deal-min-spend" inputmode="decimal" placeholder="50">
+            </label>
+
+            <label>
+              <span>Credit amount</span>
+              <input id="deal-discount" inputmode="decimal" placeholder="10">
+            </label>
+
+            <label>
+              <span>Cashback %</span>
+              <input id="deal-percent" inputmode="decimal" placeholder="10">
+            </label>
+
+            <label>
+              <span>Max benefit</span>
+              <input id="deal-max-benefit" inputmode="decimal" placeholder="25">
+            </label>
+
+            <label>
+              <span>Extra multiplier</span>
+              <input id="deal-extra-multiplier" inputmode="decimal" placeholder="2">
+            </label>
+
+            <label>
+              <span>Expires</span>
+              <input id="deal-expires" type="date">
+            </label>
+
+            <label class="checkbox">
+              <input id="deal-activated" type="checkbox" checked>
+              <span>Activated</span>
+            </label>
+          </div>
+
+          <div class="button-row">
+            <button class="button" type="submit">Save deal locally</button>
+            <button class="button ghost" id="reset-deal-form" type="button">Reset form</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel" aria-labelledby="data-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">JSON workflow</p>
+            <h2 id="data-title">Export updated deals</h2>
+          </div>
+        </div>
+
+        <p class="body-copy">
+          Static GitHub Pages cannot write to your repo. New deals are stored locally first, then you can download or copy the merged <code>data/deals.json</code> and commit it manually.
+        </p>
+
+        <div class="button-row">
+          <button class="button secondary" id="download-deals" type="button">Download deals.json</button>
+          <button class="button secondary" id="copy-deals" type="button">Copy deals JSON</button>
+          <button class="button danger" id="clear-local-deals" type="button">Clear local deals</button>
+        </div>
+
+        <div id="local-deals" class="local-deals"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>No backend. No GitHub token in the browser. Data files are plain JSON served by GitHub Pages.</p>
+    </footer>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>
+

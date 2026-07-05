@@ -1,0 +1,117 @@
+[
+  {
+    "id": "mcdonalds",
+    "name": "McDonald's",
+    "category": "restaurant",
+    "aliases": ["mcd", "mcdo", "mcdonalds", "mcdonald's", "macdonalds", "golden arches", "fast food"]
+  },
+  {
+    "id": "chipotle",
+    "name": "Chipotle",
+    "category": "restaurant",
+    "aliases": ["chipotle mexican grill", "chip"]
+  },
+  {
+    "id": "starbucks",
+    "name": "Starbucks",
+    "category": "restaurant",
+    "aliases": ["sbux", "starbuck"]
+  },
+  {
+    "id": "shake-shack",
+    "name": "Shake Shack",
+    "category": "restaurant",
+    "aliases": ["shakeshack", "shake"]
+  },
+  {
+    "id": "whole-foods",
+    "name": "Whole Foods",
+    "category": "grocery",
+    "aliases": ["wholefoods", "whole foods market", "wfm"]
+  },
+  {
+    "id": "trader-joes",
+    "name": "Trader Joe's",
+    "category": "grocery",
+    "aliases": ["trader joes", "trader joe", "tj", "tjs"]
+  },
+  {
+    "id": "safeway",
+    "name": "Safeway",
+    "category": "grocery",
+    "aliases": ["safe way"]
+  },
+  {
+    "id": "costco-gas",
+    "name": "Costco Gas",
+    "category": "gas",
+    "aliases": ["costco fuel", "costco gasoline", "costco station"]
+  },
+  {
+    "id": "shell",
+    "name": "Shell",
+    "category": "gas",
+    "aliases": ["shell gas", "shell station"]
+  },
+  {
+    "id": "chevron",
+    "name": "Chevron",
+    "category": "gas",
+    "aliases": ["chevron gas", "chevron station"]
+  },
+  {
+    "id": "costco-wholesale",
+    "name": "Costco Wholesale",
+    "category": "wholesale",
+    "aliases": ["costco", "costco warehouse"]
+  },
+  {
+    "id": "cvs",
+    "name": "CVS",
+    "category": "drugstore",
+    "aliases": ["cvs pharmacy"]
+  },
+  {
+    "id": "walgreens",
+    "name": "Walgreens",
+    "category": "drugstore",
+    "aliases": ["walgreen", "walgreens pharmacy"]
+  },
+  {
+    "id": "amazon",
+    "name": "Amazon",
+    "category": "online",
+    "aliases": ["amazon.com", "amzn"]
+  },
+  {
+    "id": "best-buy",
+    "name": "Best Buy",
+    "category": "electronics",
+    "aliases": ["bestbuy"]
+  },
+  {
+    "id": "target",
+    "name": "Target",
+    "category": "retail",
+    "aliases": ["target store", "tgt"]
+  },
+  {
+    "id": "walmart",
+    "name": "Walmart",
+    "category": "retail",
+    "aliases": ["wal-mart", "walmart supercenter", "wmt"]
+  },
+  {
+    "id": "uber",
+    "name": "Uber",
+    "category": "rideshare",
+    "aliases": ["uber trip", "uber ride"]
+  },
+  {
+    "id": "doordash",
+    "name": "DoorDash",
+    "category": "restaurant",
+    "aliases": ["door dash", "dd"]
+  }
+]
+

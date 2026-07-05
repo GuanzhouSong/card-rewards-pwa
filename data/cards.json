@@ -1,0 +1,157 @@
+[
+  {
+    "id": "amex-gold",
+    "name": "Amex Gold",
+    "issuer": "American Express",
+    "aliases": ["american express gold", "gold"],
+    "pointCurrency": "Amex Membership Rewards",
+    "pointValueCents": 1.5,
+    "rewards": [
+      {
+        "category": "restaurant",
+        "multiplier": 4,
+        "notes": "Dining reward rules can vary by country and merchant coding."
+      },
+      {
+        "category": "grocery",
+        "multiplier": 4,
+        "cap": {
+          "amount": 25000,
+          "period": "calendar year",
+          "notes": "U.S. supermarkets only"
+        }
+      },
+      {
+        "category": "travel",
+        "multiplier": 3,
+        "notes": "Flights booked directly or through Amex Travel."
+      },
+      {
+        "category": "default",
+        "multiplier": 1
+      }
+    ],
+    "notes": ["Sample data. Replace with your exact wallet and valuations."]
+  },
+  {
+    "id": "chase-freedom-flex",
+    "name": "Chase Freedom Flex",
+    "issuer": "Chase",
+    "aliases": ["freedom flex", "cff"],
+    "pointCurrency": "Chase Ultimate Rewards",
+    "pointValueCents": 1.7,
+    "rewards": [
+      {
+        "category": "restaurant",
+        "multiplier": 3
+      },
+      {
+        "category": "drugstore",
+        "multiplier": 3
+      },
+      {
+        "category": "travel",
+        "multiplier": 5,
+        "notes": "Travel booked through Chase Travel."
+      },
+      {
+        "category": "default",
+        "multiplier": 1
+      }
+    ],
+    "notes": ["Add quarterly 5x categories as deals or temporary category rules."]
+  },
+  {
+    "id": "citi-custom-cash",
+    "name": "Citi Custom Cash",
+    "issuer": "Citi",
+    "aliases": ["custom cash", "ccc"],
+    "pointCurrency": "Citi ThankYou Points",
+    "pointValueCents": 1,
+    "rewards": [
+      {
+        "category": "grocery",
+        "multiplier": 5,
+        "cap": {
+          "amount": 500,
+          "period": "billing cycle",
+          "notes": "Only the top eligible spend category earns 5x."
+        }
+      },
+      {
+        "category": "gas",
+        "multiplier": 5,
+        "cap": {
+          "amount": 500,
+          "period": "billing cycle",
+          "notes": "Only the top eligible spend category earns 5x."
+        }
+      },
+      {
+        "category": "restaurant",
+        "multiplier": 5,
+        "cap": {
+          "amount": 500,
+          "period": "billing cycle",
+          "notes": "Only the top eligible spend category earns 5x."
+        }
+      },
+      {
+        "category": "default",
+        "multiplier": 1
+      }
+    ],
+    "notes": ["Use this sample carefully because the real card only gives 5x on one eligible category per cycle."]
+  },
+  {
+    "id": "costco-anywhere-visa",
+    "name": "Costco Anywhere Visa",
+    "issuer": "Citi",
+    "aliases": ["costco visa", "costco card"],
+    "pointCurrency": "Cash back",
+    "pointValueCents": 1,
+    "rewards": [
+      {
+        "category": "gas",
+        "multiplier": 4,
+        "cap": {
+          "amount": 7000,
+          "period": "calendar year"
+        }
+      },
+      {
+        "category": "restaurant",
+        "multiplier": 3
+      },
+      {
+        "category": "travel",
+        "multiplier": 3
+      },
+      {
+        "category": "wholesale",
+        "multiplier": 2
+      },
+      {
+        "category": "default",
+        "multiplier": 1
+      }
+    ],
+    "notes": ["Sample data. Check current issuer terms before relying on it."]
+  },
+  {
+    "id": "flat-2-cashback",
+    "name": "Flat 2% Cashback",
+    "issuer": "Generic",
+    "aliases": ["2 percent", "catch all", "catch-all"],
+    "pointCurrency": "Cash back",
+    "pointValueCents": 1,
+    "rewards": [
+      {
+        "category": "default",
+        "multiplier": 2
+      }
+    ],
+    "notes": ["Replace with your real catch-all card."]
+  }
+]
+
