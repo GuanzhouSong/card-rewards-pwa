@@ -341,6 +341,35 @@ textarea:focus {
   margin-top: 1rem;
 }
 
+.bulk-preview {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.bulk-preview:empty {
+  display: none;
+}
+
+.bulk-card {
+  display: grid;
+  gap: 0.65rem;
+  border: 1px solid rgba(23, 92, 211, 0.2);
+  border-radius: 16px;
+  background: #eff8ff;
+  padding: 0.85rem;
+}
+
+.bulk-card ul {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.bulk-card li {
+  color: #344054;
+}
+
 .local-deal {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -411,4 +440,3 @@ code {
     white-space: normal;
   }
 }
-

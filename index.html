@@ -68,18 +68,20 @@
             <input id="screenshot-input" type="file" accept="image/*">
           </label>
           <p class="hint" id="ocr-status">
-            Built-in OCR is used only if your browser supports it. Otherwise paste the offer text below.
+            Built-in OCR is used only if your browser supports it. You can also paste a Chase Added offers page to bulk-import visible offers.
           </p>
 
           <label>
             <span>Offer text</span>
-            <textarea id="offer-text" rows="6" placeholder="Spend $50 or more, get $10 back at Shake Shack. Expires 08/31/2026."></textarea>
+            <textarea id="offer-text" rows="6" placeholder="Paste one offer, or a Chase Added offers list like: eBay / Use online only / 10% cash back / 40d left"></textarea>
           </label>
 
           <div class="button-row">
             <button class="button secondary" id="parse-offer" type="button">Parse offer text</button>
             <button class="button ghost" id="clear-offer" type="button">Clear</button>
           </div>
+
+          <div id="bulk-offer-preview" class="bulk-preview"></div>
         </div>
 
         <form class="deal-form" id="deal-form">
@@ -181,4 +183,3 @@
     <script src="./app.js" defer></script>
   </body>
 </html>
-

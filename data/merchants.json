@@ -112,6 +112,41 @@
     "name": "DoorDash",
     "category": "restaurant",
     "aliases": ["door dash", "dd"]
+  },
+  {
+    "id": "disney-plus",
+    "name": "Disney+",
+    "category": "online",
+    "aliases": ["disney plus", "disneyplus", "disney"]
+  },
+  {
+    "id": "little-caesars",
+    "name": "Little Caesar's",
+    "category": "restaurant",
+    "aliases": ["little caesars", "little caesar", "lc pizza"]
+  },
+  {
+    "id": "kroger-delivery",
+    "name": "Kroger Delivery",
+    "category": "grocery",
+    "aliases": ["kroger", "kroger delivery", "kroger.com"]
+  },
+  {
+    "id": "ebay",
+    "name": "eBay",
+    "category": "online",
+    "aliases": ["ebay.com", "e bay"]
+  },
+  {
+    "id": "google-play",
+    "name": "Google Play",
+    "category": "online",
+    "aliases": ["google play store", "play store"]
+  },
+  {
+    "id": "starlink",
+    "name": "Starlink",
+    "category": "online",
+    "aliases": ["starlink fast affordable home internet", "starlink internet", "spacex starlink"]
   }
 ]
-

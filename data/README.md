@@ -26,7 +26,8 @@ Example: `4x * 1.5 cents = 6%`.
 {
   "type": "cashback_percent",
   "cashbackPercent": 10,
-  "maxBenefit": 25
+  "maxBenefit": 25,
+  "onlineOnly": true
 }
 ```
 
@@ -36,4 +37,3 @@ Example: `4x * 1.5 cents = 6%`.
   "extraMultiplier": 2
 }
 ```
-

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'card-rewards-pwa-v1';
+const CACHE_NAME = 'card-rewards-pwa-v2';
 
 const STATIC_ASSETS = [
   './',
@@ -64,4 +64,3 @@ async function networkFirst(request) {
     throw new Error('Offline and no cached response is available.');
   }
 }
-

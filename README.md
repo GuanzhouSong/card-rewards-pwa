@@ -36,6 +36,17 @@ data/deals.json      committed cashback/statement-credit offers
 
 Screenshot/OCR-assisted deal import is browser-only. If the browser does not support built-in text detection, paste the offer text manually. New deals are saved to local browser storage first, then the app can download or copy a merged `deals.json` for you to commit back to the repo.
 
+For Chase Offers, copy the visible text from the **Added** offers page and paste it into **Offer text**. The app recognizes rows like:
+
+```text
+eBay
+Use online only
+10% cash back
+40d left
+```
+
+It bulk-parses the merchant, online-only flag, cashback percent, card, activated status, and relative expiration date. Always review the parsed preview before saving.
+
 ## Security model
 
 Do not store full card numbers, CVV, bank passwords, session cookies, or bank login data. The intended data is card nicknames, public reward rules, merchant aliases, and offer terms.

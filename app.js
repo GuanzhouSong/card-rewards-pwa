@@ -26,6 +26,7 @@ const state = {
   merchants: [],
   baseDeals: [],
   localDeals: [],
+  parsedBulkDeals: [],
   selectedMerchant: null,
 };
 
@@ -73,6 +74,7 @@ function bindDom() {
   dom.offerText = document.querySelector('#offer-text');
   dom.parseOffer = document.querySelector('#parse-offer');
   dom.clearOffer = document.querySelector('#clear-offer');
+  dom.bulkOfferPreview = document.querySelector('#bulk-offer-preview');
   dom.dealForm = document.querySelector('#deal-form');
   dom.dealCard = document.querySelector('#deal-card');
   dom.dealMerchant = document.querySelector('#deal-merchant');
@@ -117,7 +119,21 @@ function bindEvents() {
   dom.parseOffer.addEventListener('click', parseOfferIntoForm);
   dom.clearOffer.addEventListener('click', () => {
     dom.offerText.value = '';
+    clearBulkOfferPreview();
     dom.ocrStatus.textContent = 'Offer text cleared.';
+  });
+  dom.bulkOfferPreview.addEventListener('click', (event) => {
+    const saveButton = event.target.closest('#save-bulk-offers');
+    if (saveButton) {
+      saveParsedBulkDeals();
+      return;
+    }
+
+    const useButton = event.target.closest('[data-use-parsed-deal]');
+    if (!useButton) return;
+
+    const deal = state.parsedBulkDeals[Number(useButton.dataset.useParsedDeal)];
+    if (deal) fillDealForm(deal);
   });
 
   dom.dealForm.addEventListener('submit', saveDealFromForm);
@@ -193,7 +209,7 @@ function updateRecommendation() {
   const amount = parseMoney(dom.amountInput.value);
   const matches = searchMerchants(query).slice(0, 5);
   const merchant = resolveMerchant(query, matches);
-  const category = merchant?.category || dom.categorySelect.value;
+  const category = merchant?.category || dom.categorySelect.value || (query.trim() ? 'default' : '');
 
   renderSuggestions(matches, query);
 
@@ -486,19 +502,150 @@ function parseOfferIntoForm() {
     return;
   }
 
-  const parsed = parseOfferText(text);
-  fillDealForm(parsed);
+  const parsedDeals = parseOffersFromText(text);
+  if (!parsedDeals.length) {
+    clearBulkOfferPreview();
+    dom.ocrStatus.textContent = 'No offers found. Try a cropped screenshot or paste the offer text manually.';
+    return;
+  }
+
+  fillDealForm(parsedDeals[0]);
+
+  if (parsedDeals.length > 1) {
+    state.parsedBulkDeals = parsedDeals;
+    renderBulkOfferPreview();
+    dom.ocrStatus.textContent = `Parsed ${parsedDeals.length} offers. Review them before saving all locally.`;
+    return;
+  }
+
+  clearBulkOfferPreview();
   dom.ocrStatus.textContent = 'Parsed best-effort fields. Review every value before saving.';
 }
 
-function parseOfferText(text) {
+function parseOffersFromText(text, options = {}) {
+  const chaseOffers = parseChaseOffersText(text, options);
+  if (chaseOffers.length) return chaseOffers;
+
+  const parsed = parseOfferText(text, options);
+  return parsed.title || parsed.merchantName ? [parsed] : [];
+}
+
+function parseChaseOffersText(text, options = {}) {
+  if (!looksLikeCashbackList(text)) return [];
+
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const card = findCardInText(text) || state.cards[0];
+  const activated = lines.some((line) => /^added$/i.test(line));
+  const offers = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const cashbackMatch = lines[index].match(/^(\d+(?:\.\d+)?)\s*%\s*cash\s*back$/i);
+    if (!cashbackMatch) continue;
+
+    let merchantIndex = index - 1;
+    let onlineOnly = false;
+    if (merchantIndex >= 0 && isOnlineOnlyLine(lines[merchantIndex])) {
+      onlineOnly = true;
+      merchantIndex -= 1;
+    }
+
+    const merchantName = lines[merchantIndex] || '';
+    if (!merchantName || isNonMerchantLine(merchantName)) continue;
+
+    const merchant = findMerchantByName(merchantName);
+    const daysLeft = (lines[index + 1] || '').match(/^(\d+)\s*d(?:ays?)?\s*left$/i);
+    const cashbackPercent = cleanNumber(cashbackMatch[1]);
+    const expires = daysLeft ? daysLeftToIso(daysLeft[1], options.baseDate) : '';
+
+    offers.push({
+      cardId: card?.id || '',
+      merchantId: merchant?.id || '',
+      merchantName: merchant?.name || merchantName,
+      merchantAliases: merchant?.aliases || [],
+      title: `${cashbackPercent}% cash back at ${merchant?.name || merchantName}`,
+      type: 'cashback_percent',
+      minSpend: '',
+      discountAmount: '',
+      cashbackPercent,
+      maxBenefit: '',
+      extraMultiplier: '',
+      expires,
+      activated,
+      onlineOnly,
+      source: 'chase-offers-paste',
+    });
+  }
+
+  return offers;
+}
+
+function looksLikeCashbackList(text) {
+  return /\d+(?:\.\d+)?\s*%\s*cash\s*back/i.test(text) && /\d+\s*d(?:ays?)?\s*left/i.test(text);
+}
+
+function isOnlineOnlyLine(line) {
+  return /^use\s+online\s+only$/i.test(line);
+}
+
+function isNonMerchantLine(line) {
+  return /^(added|redeemed|expiring soon|expired|home|offers wallet|chase shopping|more|choose account|total amount saved|use online only)$/i.test(line)
+    || /^skip\b/i.test(line)
+    || /^sign out$/i.test(line)
+    || /^\$[\d,.]+$/.test(line)
+    || /^\d+d(?:ays?)?\s*left$/i.test(line);
+}
+
+function renderBulkOfferPreview() {
+  if (!state.parsedBulkDeals.length) {
+    dom.bulkOfferPreview.innerHTML = '';
+    return;
+  }
+
+  dom.bulkOfferPreview.innerHTML = `
+    <div class="bulk-card">
+      <strong>Parsed ${state.parsedBulkDeals.length} offers</strong>
+      <ul>
+        ${state.parsedBulkDeals.map((deal, index) => `
+          <li>
+            ${escapeHtml(deal.merchantName)}:
+            ${escapeHtml(deal.cashbackPercent)}% cash back
+            ${deal.onlineOnly ? ' · online only' : ''}
+            ${deal.expires ? ` · expires ${escapeHtml(deal.expires)}` : ''}
+            · ${escapeHtml(cardName(deal.cardId))}
+            <button class="mini-button" type="button" data-use-parsed-deal="${index}">Edit</button>
+          </li>
+        `).join('')}
+      </ul>
+      <button class="button" id="save-bulk-offers" type="button">Save all parsed offers locally</button>
+    </div>
+  `;
+}
+
+function clearBulkOfferPreview() {
+  state.parsedBulkDeals = [];
+  dom.bulkOfferPreview.innerHTML = '';
+}
+
+function saveParsedBulkDeals() {
+  if (!state.parsedBulkDeals.length) return;
+
+  saveDealsLocally(state.parsedBulkDeals);
+  const count = state.parsedBulkDeals.length;
+  clearBulkOfferPreview();
+  dom.ocrStatus.textContent = `Saved ${count} parsed offers locally. Download or copy deals.json when ready to commit.`;
+}
+
+function parseOfferText(text, options = {}) {
   const compact = text.replace(/\s+/g, ' ');
   const merchant = findMerchantInText(text);
   const card = findCardInText(text);
   const spendGet = compact.match(/spend\s*\$?\s*([\d,.]+).{0,100}?(?:get|receive|earn)\s*\$?\s*([\d,.]+)/i);
   const percent = compact.match(/(\d+(?:\.\d+)?)\s*%\s*(?:cash\s*back|cashback|back)/i);
   const upTo = compact.match(/up\s*to\s*\$?\s*([\d,.]+)/i);
-  const expiry = extractExpiryDate(compact);
+  const expiry = extractExpiryDate(compact, options.baseDate);
   const firstLine = text.split('\n').map((line) => line.trim()).find(Boolean);
 
   const parsed = {
@@ -550,8 +697,7 @@ function saveDealFromForm(event) {
 
   const merchant = findMerchantByName(dom.dealMerchant.value);
   const title = dom.dealTitle.value.trim();
-  const deal = {
-    id: makeDealId(dom.dealCard.value, merchant?.name || dom.dealMerchant.value, dom.dealExpires.value, title),
+  const deal = normalizeDealForStorage({
     cardId: dom.dealCard.value,
     merchantId: merchant?.id || '',
     merchantName: merchant?.name || dom.dealMerchant.value.trim(),
@@ -566,15 +712,61 @@ function saveDealFromForm(event) {
     expires: dom.dealExpires.value,
     activated: dom.dealActivated.checked,
     source: 'local-import',
+  });
+
+  saveDealsLocally([deal]);
+  dom.ocrStatus.textContent = 'Deal saved locally. Download or copy deals.json when you are ready to commit it.';
+}
+
+function normalizeDealForStorage(deal) {
+  const merchant = deal.merchantId
+    ? state.merchants.find((item) => item.id === deal.merchantId)
+    : findMerchantByName(deal.merchantName);
+  const merchantName = merchant?.name || String(deal.merchantName || '').trim();
+
+  return {
+    id: deal.id || makeDealId(
+      deal.cardId,
+      merchantName,
+      deal.expires,
+      deal.title,
+      deal.type,
+      deal.minSpend,
+      deal.discountAmount,
+      deal.cashbackPercent,
+      deal.maxBenefit,
+      deal.extraMultiplier,
+    ),
+    cardId: deal.cardId || '',
+    merchantId: merchant?.id || deal.merchantId || '',
+    merchantName,
+    merchantAliases: merchant?.aliases || deal.merchantAliases || [],
+    title: String(deal.title || '').trim(),
+    type: deal.type || 'statement_credit',
+    minSpend: numberOrNull(deal.minSpend),
+    discountAmount: numberOrNull(deal.discountAmount),
+    cashbackPercent: numberOrNull(deal.cashbackPercent),
+    maxBenefit: numberOrNull(deal.maxBenefit),
+    extraMultiplier: numberOrNull(deal.extraMultiplier),
+    expires: deal.expires || '',
+    activated: deal.activated !== false,
+    onlineOnly: Boolean(deal.onlineOnly),
+    source: deal.source || 'local-import',
     updatedAt: new Date().toISOString(),
   };
+}
 
-  state.localDeals = [...state.localDeals.filter((item) => item.id !== deal.id), deal];
+function saveDealsLocally(deals) {
+  const byId = new Map(state.localDeals.map((deal) => [deal.id, deal]));
+  for (const deal of deals.map(normalizeDealForStorage)) {
+    byId.set(deal.id, deal);
+  }
+
+  state.localDeals = [...byId.values()];
   persistLocalDeals();
   renderDataStatus();
   renderLocalDeals();
   updateRecommendation();
-  dom.ocrStatus.textContent = 'Deal saved locally. Download or copy deals.json when you are ready to commit it.';
 }
 
 function resetDealForm() {
@@ -628,7 +820,7 @@ function renderLocalDeals() {
       <div class="local-deal">
         <div>
           <strong>${escapeHtml(deal.title)}</strong>
-          <p>${escapeHtml(deal.merchantName || 'Unknown merchant')} · ${escapeHtml(cardName(deal.cardId))} · expires ${escapeHtml(deal.expires || 'unknown')}</p>
+          <p>${escapeHtml(deal.merchantName || 'Unknown merchant')} · ${escapeHtml(cardName(deal.cardId))}${deal.onlineOnly ? ' · online only' : ''} · expires ${escapeHtml(deal.expires || 'unknown')}</p>
         </div>
         <button class="mini-button" type="button" data-delete-deal="${escapeHtml(deal.id)}">Delete</button>
       </div>
@@ -693,7 +885,10 @@ function findCardInText(text) {
   ));
 }
 
-function extractExpiryDate(text) {
+function extractExpiryDate(text, baseDate) {
+  const daysLeft = text.match(/(\d+)\s*d(?:ays?)?\s*left/i);
+  if (daysLeft) return daysLeftToIso(daysLeft[1], baseDate);
+
   const patterns = [
     /(?:expires?|valid\s+through|valid\s+until)\s*(?:on)?\s*([a-z]+\.?\s+\d{1,2}(?:st|nd|rd|th)?\,?\s+\d{4})/i,
     /(?:expires?|valid\s+through|valid\s+until)\s*(?:on)?\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})/i,
@@ -710,6 +905,24 @@ function extractExpiryDate(text) {
   return '';
 }
 
+function daysLeftToIso(daysLeft, baseDate = new Date()) {
+  const days = Number(daysLeft);
+  if (!Number.isFinite(days)) return '';
+
+  const date = new Date(baseDate);
+  date.setHours(12, 0, 0, 0);
+  date.setDate(date.getDate() + days);
+  return formatIsoDateLocal(date);
+}
+
+function formatIsoDateLocal(date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-');
+}
+
 function parseDateToIso(value) {
   const cleaned = value.replace(/(\d)(st|nd|rd|th)/gi, '$1').replace(/\./g, '');
   const slash = cleaned.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})$/);
@@ -722,16 +935,11 @@ function parseDateToIso(value) {
   const parsed = new Date(cleaned);
   if (Number.isNaN(parsed.getTime())) return '';
 
-  return [
-    parsed.getFullYear(),
-    String(parsed.getMonth() + 1).padStart(2, '0'),
-    String(parsed.getDate()).padStart(2, '0'),
-  ].join('-');
+  return formatIsoDateLocal(parsed);
 }
 
-function makeDealId(cardId, merchantName, expires, title) {
-  const base = [cardId, merchantName, expires, title].filter(Boolean).join('-');
-  return `${slugify(base)}-${Date.now().toString(36)}`;
+function makeDealId(...parts) {
+  return slugify(parts.filter((part) => part !== null && part !== undefined && part !== '').join('-'));
 }
 
 function cardName(cardId) {
