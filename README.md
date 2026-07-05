@@ -71,6 +71,16 @@ Use cashback_import_deals with writeToRepo=true and baseDate=2026-07-05 to updat
 
 The tool extracts merchant, card, cashback percent, online-only flag, activation status, and expiration date. It updates only `data/deals.json`; review `git diff` before committing.
 
+The extension also has an auto-detection hook. If you paste a whole offer page while Copilot CLI is running from this repo, Copilot receives hidden guidance to call `cashback_import_deals` automatically. A bare pasted offer page is treated as an update request; include words like `preview` or `do not write` if you only want extraction without changing `data/deals.json`.
+
+Project extensions are discovered only when Copilot CLI starts in this repository or one of its subdirectories. If Copilot is started from another directory, run:
+
+```sh
+cd /Users/guanzhou/codebase/card-rewards-pwa
+```
+
+Then restart or reload Copilot CLI extensions.
+
 You can also run the same importer directly:
 
 ```sh
